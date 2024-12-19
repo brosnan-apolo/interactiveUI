@@ -12,6 +12,6 @@ If you notice anything that needs to be changed or fixed go ahead and help as I 
 
 > npm install @mui/material @emotion/react @emotion/styled yaml
 
-> replacing the app.js file in live-docker with our written app.js file
+replacing the app.js file in live-docker with our written app.js file
 
 > npm start
