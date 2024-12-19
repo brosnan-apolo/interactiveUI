@@ -21,7 +21,6 @@ resources = {"cpu": 1, "memory": 512}
 def start():
     typer.echo("\nWelcome to the Live.yml & Dockerfile Generator!")
     
-    # Step 1: Python Version
     global selected_python_version
     typer.echo("\nStep 1: Select Python Version")
     selected_python_version = typer.prompt(
@@ -31,7 +30,6 @@ def start():
         typer.echo(f"Invalid choice. Defaulting to 3.9.")
         selected_python_version = "3.9"
 
-    # Step 2: Base Image
     global selected_base_image
     typer.echo("\nStep 2: Select a Base Image")
     selected_base_image = typer.prompt(
@@ -41,25 +39,21 @@ def start():
         typer.echo(f"Invalid choice. Defaulting to neuromation/base:python-3.9.")
         selected_base_image = "neuromation/base:python-3.9"
 
-    # Step 3: Dependencies
     global selected_dependencies
     typer.echo("\nStep 3: Add Dependencies")
     typer.echo(f"Available dependencies: {', '.join(default_dependencies)}")
     selected_dependencies = typer.prompt("Enter dependencies separated by commas", default="numpy,pandas").split(",")
     selected_dependencies = [dep.strip() for dep in selected_dependencies]
 
-    # Step 4: Resources
     global resources
     typer.echo("\nStep 4: Configure Resources")
     resources["cpu"] = typer.prompt("Enter CPU cores", default=1)
     resources["memory"] = typer.prompt("Enter memory (Mi)", default=512)
 
-    # Step 5: Command
     global selected_command
     typer.echo("\nStep 5: Define Command")
     selected_command = typer.prompt("Enter the command to run your application", default="python app.py")
 
-    # Generate files
     generate_files()
 
 
