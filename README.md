@@ -6,12 +6,12 @@ If you notice anything that needs to be changed or fixed go ahead and help as I 
 
 [To initiate the App.js file in my terminal I've been running:]
 
-npx create-react-app live-docker-generator
+> npx create-react-app live-docker-generator
 
-cd live-docker-generator
+> cd live-docker-generator
 
-npm install @mui/material @emotion/react @emotion/styled yaml
+> npm install @mui/material @emotion/react @emotion/styled yaml
 
-replacing the app.js file in live-docker with our written app.js file
+> replacing the app.js file in live-docker with our written app.js file
 
-npm start
+> npm start
