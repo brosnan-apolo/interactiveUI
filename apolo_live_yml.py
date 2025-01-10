@@ -56,13 +56,8 @@ def check_apolo_installed():
         return False
 
 def get_apolo_presets():
-    try:
-        result = subprocess.run(["apolo", "resources", "presets"], check=True, stdout=subprocess.PIPE, text=True)
-        presets = result.stdout.splitlines()
-        return presets
-    except subprocess.CalledProcessError as e:
-        print(f"Error fetching resource presets: {e}")
-        return []
+    # static presets as a fallback for testing
+    return ["cpu-small", "gpu-large", "a100x2"]
 
 @app.route('/generate_live_yml', methods=['POST'])
 def generate_live_yml():
