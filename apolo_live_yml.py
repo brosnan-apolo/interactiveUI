@@ -4,101 +4,111 @@ import yaml
 app = Flask(__name__)
 
 LIVE_YML_TEMPLATE = {
-    "kind": {
-        "value": "live",
-        "description": "Specifies the type of configuration file. Always 'live' for live.yml."
-    },
-    "title": {
-        "value": "custom_project",
-        "description": "The title of your project."
-    },
-    "defaults": {
-        "life_span": {
-            "value": "5d",
-            "description": "Default lifespan of the job (e.g., 5 days)."
-        }
-    },
+    "kind": "live",
+    "title": "custom_project",
+    "defaults": {"life_span": "5d"},
     "volumes": {},
     "images": {},
     "jobs": {}
 }
 
 JOB_TEMPLATE = {
-    "name": {
-        "value": "example_job",
-        "description": "The name of the job. This must be unique."
-    },
-    "preset": {
-        "value": "cpu-small",
-        "description": "The resource preset for the job (e.g., 'cpu-small', 'gpu-large')."
-    },
-    "http_port": {
-        "value": "8080",
-        "description": "The HTTP port exposed by the job. Default is 8080."
-    },
-    "browse": {
-        "value": True,
-        "description": "Whether the job's HTTP endpoint should be browseable."
-    },
-    "env": {
-        "value": {},
-        "description": "Environment variables for the job as key-value pairs."
-    },
-    "volumes": {
-        "value": [],
-        "description": "A list of volume names linked to this job."
-    }
+    "name": "example_job",
+    "preset": "cpu-small",
+    "http_port": "8080",
+    "browse": True,
+    "env": {},
+    "volumes": []
 }
 
 VOLUME_TEMPLATE = {
     "remote": {
         "value": "storage:/project_id/data",
-        "description": "The remote path to the storage location (e.g., 'storage:/project_id/data')."
+        "description": "Specifies the remote path to the storage location in the Apolo platform (e.g., 'storage:/project_id/data')."
     },
     "mount": {
         "value": "/data",
-        "description": "The path inside the container where the volume will be mounted (e.g., '/data')."
+        "description": "Defines the path inside the container where the volume will be mounted (e.g., '/data')."
     },
     "local": {
         "value": "data_folder",
-        "description": "The local folder to be used for the volume (e.g., 'data_folder')."
+        "description": "Specifies the local directory used as the volume's source for synchronization (e.g., 'data_folder')."
     }
 }
 
 IMAGE_TEMPLATE = {
     "ref": {
         "value": "image:project_id:v1",
-        "description": "The reference to the container image (e.g., 'image:project_id:v1')."
+        "description": "Specifies the reference to the container image used for the job (e.g., 'image:project_id:v1')."
     },
     "dockerfile": {
         "value": "./Dockerfile",
-        "description": "The path to the Dockerfile used to build the image."
+        "description": "Path to the Dockerfile used to build the image."
     },
     "context": {
         "value": "./",
-        "description": "The build context directory for the Docker image."
+        "description": "Defines the build context directory for the Docker image."
     },
     "build_preset": {
         "value": "cpu-large",
-        "description": "The resource preset to use when building the Docker image."
+        "description": "Specifies the resource preset for building the Docker image."
     }
 }
+
+def validate_input(data):
+    errors = []
+
+    if not data.get("title"):
+        errors.append("The 'title' field is required and specifies the title of your workflow.")
+
+    if "defaults" in data:
+        if not isinstance(data["defaults"], dict):
+            errors.append("'defaults' must be a dictionary containing workflow-wide settings.")
+
+    if "jobs" not in data or not isinstance(data["jobs"], dict):
+        errors.append("At least one 'job' is required and must be a dictionary.")
+    else:
+        for job_name, job in data["jobs"].items():
+            if "preset" not in job:
+                errors.append(f"Job '{job_name}' is missing the 'preset' field, which specifies the compute resource preset.")
+            if "http_port" in job:
+                try:
+                    port = int(job["http_port"])
+                    if port < 1 or port > 65535:
+                        errors.append(f"Job '{job_name}' has an invalid 'http_port': {port}. Must be between 1 and 65535.")
+                except ValueError:
+                    errors.append(f"Job '{job_name}' has an invalid 'http_port': must be an integer.")
+
+    if "volumes" in data:
+        if not isinstance(data["volumes"], dict):
+            errors.append("'volumes' must be a dictionary defining volume configurations.")
+        else:
+            for volume_name, volume in data["volumes"].items():
+                for field in ["remote", "mount", "local"]:
+                    if field not in volume:
+                        errors.append(f"Volume '{volume_name}' is missing the '{field}' field, which defines its {VOLUME_TEMPLATE[field]['description'].lower()}.")
+
+    if "images" in data:
+        if not isinstance(data["images"], dict):
+            errors.append("'images' must be a dictionary specifying image build configurations.")
+
+    return errors
 
 @app.route('/get_defaults', methods=['GET'])
 def get_defaults():
     defaults = {
         "title": "The title of your project",
-        "defaults": {"life_span": "Default lifespan of the job (e.g., 5d)"},
+        "defaults": {"life_span": "Specifies the default lifespan of the workflow (e.g., '5d')."},
         "volumes": {
-            "description": "Define volume mappings for your project",
+            "description": "Define volume mappings for your project.",
             "template": VOLUME_TEMPLATE
         },
         "images": {
-            "description": "Specify images and their build context",
+            "description": "Specify images and their build context.",
             "template": IMAGE_TEMPLATE
         },
         "jobs": {
-            "description": "Configure jobs with resource presets and environment variables",
+            "description": "Configure jobs with resource presets and environment variables.",
             "template": JOB_TEMPLATE
         },
         "expandable_tabs": {
@@ -112,54 +122,21 @@ def get_defaults():
 def generate_live_yml():
     data = request.json
 
-    live_yml = {
-        key: {"value": LIVE_YML_TEMPLATE[key]["value"], "description": LIVE_YML_TEMPLATE[key]["description"]} if key in LIVE_YML_TEMPLATE else {}
-        for key in LIVE_YML_TEMPLATE
-    }
+    errors = validate_input(data)
+    if errors:
+        return jsonify({"errors": errors}), 400
 
+    live_yml = LIVE_YML_TEMPLATE.copy()
     if "title" in data:
-        live_yml["title"] = {
-            "value": data["title"],
-            "description": LIVE_YML_TEMPLATE["title"]["description"]
-        }
-
+        live_yml["title"] = data["title"]
     if "defaults" in data:
-        for key, value in data["defaults"].items():
-            if key in live_yml["defaults"]:
-                live_yml["defaults"][key] = {
-                    "value": value,
-                    "description": LIVE_YML_TEMPLATE["defaults"][key]["description"]
-                }
-
+        live_yml["defaults"].update(data["defaults"])
     if "volumes" in data:
-        live_yml["volumes"] = {
-            k: {
-                sub_key: {
-                    "value": v.get(sub_key, VOLUME_TEMPLATE[sub_key]["value"]),
-                    "description": VOLUME_TEMPLATE[sub_key]["description"]
-                } for sub_key in VOLUME_TEMPLATE
-            } for k, v in data["volumes"].items()
-        }
-
+        live_yml["volumes"].update(data["volumes"])
     if "images" in data:
-        live_yml["images"] = {
-            k: {
-                sub_key: {
-                    "value": v.get(sub_key, IMAGE_TEMPLATE[sub_key]["value"]),
-                    "description": IMAGE_TEMPLATE[sub_key]["description"]
-                } for sub_key in IMAGE_TEMPLATE
-            } for k, v in data["images"].items()
-        }
-
+        live_yml["images"].update(data["images"])
     if "jobs" in data:
-        live_yml["jobs"] = {
-            k: {
-                sub_key: {
-                    "value": v.get(sub_key, JOB_TEMPLATE[sub_key]["value"]),
-                    "description": JOB_TEMPLATE[sub_key]["description"]
-                } for sub_key in JOB_TEMPLATE
-            } for k, v in data["jobs"].items()
-        }
+        live_yml["jobs"].update(data["jobs"])
 
     output_file = data.get('output_file', 'live.yaml')
 
