@@ -11,14 +11,12 @@
   <div class="container">
     <h1>Live.yml Generator</h1>
 
-    <!-- Fetch Defaults -->
     <section class="card">
       <h2>Fetch Defaults</h2>
       <button hx-get="/get_defaults" hx-target="#defaults" class="btn">Get Defaults</button>
       <pre id="defaults" class="output-box"></pre>
     </section>
 
-    <!-- Generate Live.yml -->
     <section class="card">
       <h2>Generate Live.yml</h2>
       <form hx-post="/generate_live_yml" hx-target="#result">
@@ -33,7 +31,6 @@
       <div id="result" class="output-box"></div>
     </section>
 
-    <!-- Download Live.yml -->
     <section class="card">
       <h2>Download Live.yml</h2>
       <button hx-get="/download_live_yml" class="btn btn-success">Download</button>
