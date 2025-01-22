@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live.yml Generator</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://unpkg.com/htmx.org"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Live.yml Generator</h1>
+
+    <!-- Fetch Defaults -->
+    <section class="card">
+      <h2>Fetch Defaults</h2>
+      <button hx-get="/get_defaults" hx-target="#defaults" class="btn">Get Defaults</button>
+      <pre id="defaults" class="output-box"></pre>
+    </section>
+
+    <!-- Generate Live.yml -->
+    <section class="card">
+      <h2>Generate Live.yml</h2>
+      <form hx-post="/generate_live_yml" hx-target="#result">
+        <label for="title">Project Title:</label>
+        <input type="text" id="title" name="title" placeholder="Enter project title" required>
+
+        <label for="jobs">Jobs (JSON):</label>
+        <textarea id="jobs" name="jobs" placeholder='{"example_job": {"preset": "cpu-small", "http_port": 8080}}'></textarea>
+
+        <button type="submit" class="btn">Generate</button>
+      </form>
+      <div id="result" class="output-box"></div>
+    </section>
+
+    <!-- Download Live.yml -->
+    <section class="card">
+      <h2>Download Live.yml</h2>
+      <button hx-get="/download_live_yml" class="btn btn-success">Download</button>
+    </section>
+  </div>
+</body>
+</html>
