@@ -14,8 +14,7 @@
     <section class="card">
       <h2>Fetch Defaults</h2>
       <button hx-get="/get_defaults" hx-target="#defaults-container" class="btn">Get Defaults</button>
-      <div id="defaults-container" class="output-box">
-      </div>
+      <div id="defaults-container" class="output-box"></div>
     </section>
 
     <section class="card">
@@ -34,9 +33,12 @@
 
     <section class="card">
       <h2>Download Live.yml</h2>
-      <button hx-get="/download_live_yml" class="btn btn-success" hx-trigger="click" hx-swap="none">
-        Download
-      </button>
+      <button hx-get="/download_live_yml" class="btn btn-success" hx-trigger="click" hx-swap="none">Download</button>
+    </section>
+
+    <section class="card">
+      <h2>Generate & Download Default Live.yml</h2>
+      <button hx-get="/generate_default_live_yml" class="btn btn-warning" hx-trigger="click" hx-swap="none">Generate Default & Download</button>
     </section>
   </div>
 </body>
