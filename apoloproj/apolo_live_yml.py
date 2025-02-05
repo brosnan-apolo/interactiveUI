@@ -58,17 +58,10 @@ JOB_TEMPLATE = {
 
 @app.route('/')
 def index():
-    """
-    Serves the main HTML page.
-    """
     return render_template('index.html')
-
 
 @app.route('/get_defaults', methods=['GET'])
 def get_defaults():
-    """
-    Provides default templates for live.yml.
-    """
     defaults = {
         "title": "The title of your project",
         "defaults": {"life_span": "Specifies the lifespan of the workflow (e.g., '5d')."},
@@ -89,12 +82,8 @@ def get_defaults():
 
     return html_response
 
-
 @app.route('/generate_live_yml', methods=['POST'])
 def generate_live_yml():
-    """
-    Generates a live.yml file based on user input.
-    """
     data = request.json
     errors = []
 
@@ -120,18 +109,19 @@ def generate_live_yml():
 
     return jsonify({"message": "live.yaml has been generated successfully.", "output_file": output_file})
 
+@app.route('/generate_default_live_yml', methods=['GET'])
+def generate_default_live_yml():
+    output_file = "live.yaml"
+    with open(output_file, "w") as file:
+        yaml.dump(LIVE_YML_TEMPLATE, file, default_flow_style=False)
+    return send_file(output_file, as_attachment=True)
 
 @app.route('/download_live_yml', methods=['GET'])
 def download_live_yml():
-    """
-    Downloads the generated live.yml file.
-    """
     file_path = "live.yaml"
     if not os.path.exists(file_path):
         return jsonify({"error": "live.yaml not found. Please generate it first."}), 404
     return send_file(file_path, as_attachment=True)
 
-
 if __name__ == "__main__":
     app.run(debug=True)
-    
